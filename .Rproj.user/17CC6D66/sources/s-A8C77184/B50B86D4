@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573946688936.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2841807544",
+    "id" : "B50B86D4",
+    "lastKnownWriteTime" : 1573946701,
+    "last_content_update" : 1573946701844,
+    "path" : "~/GitHub/BAYES_SAT/SAT_Template.Rmd",
+    "project_path" : "SAT_Template.Rmd",
+    "properties" : {
+        "chunk_output_type" : "console",
+        "cursorPosition" : "11,13",
+        "scrollLine" : "2"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

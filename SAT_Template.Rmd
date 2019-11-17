@@ -88,7 +88,7 @@ This model doesn't use shrinkage. The model prior has a linear combination of
 sat_data <- mutate(sat_data, spend_pct = Spend*PrcntTake) #interaction variable created
 
 #normalize the newly created variable:
-sat_data <- mutate(sat_data, z_spend_pct = as.numeric(scale(Spend*PrcntTake))) 
+sat_data <- mutate(sat_data, z_spend_pct =as.numeric(scale(spend_pct)) )
 
 # Input for Stan
 sat.data <- list(J=3, N=nrow(sat_data),
@@ -126,7 +126,7 @@ sat.pri.data <- list(J=3, N=nrow(sat_data),
                  sint = sd(sat_data$spend_pct))
 
 fit.prior.m1 <- stan(file = 'model1_pri_noshrink.stan', data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.999))
-#launch_shinystan(as.shinystan(fit.prior.m1))
+launch_shinystan(as.shinystan(fit.prior.m1))
 
 set.seed(21)
 fake.data.stan <- as.matrix(as.data.frame(fit.prior.m1) %>% select(contains("y_fake")) %>% sample_n(size = 100))
@@ -151,7 +151,7 @@ $z_{y_{i}\sim student-t(z_\nu, z_{\beta_{0}{+z_{\beta_{1}}*Spend_{i}+z_{\beta_{2
 
 ```{r}
 # Input for Stan
-sat.data <- list(J=3, hypers = c(0,1),
+sat.data <- list(J=3, hypers = c(0,0.5,1,0.5),
                  N=nrow(sat_data),
                  spend = sat_data$Spend, 
                  ptake = sat_data$PrcntTake,

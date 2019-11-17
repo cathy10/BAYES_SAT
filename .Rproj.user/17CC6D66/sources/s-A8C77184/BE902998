@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573948119552.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "21|12|28|0|\n",
+    "hash" : "2255382035",
+    "id" : "BE902998",
+    "lastKnownWriteTime" : 1573946528,
+    "last_content_update" : 1573948195810,
+    "path" : "~/GitHub/BAYES_SAT/model2_shrink.stan",
+    "project_path" : "model2_shrink.stan",
+    "properties" : {
+        "cursorPosition" : "0,6",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "stan"
+}

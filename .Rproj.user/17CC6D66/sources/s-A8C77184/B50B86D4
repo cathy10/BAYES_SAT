@@ -5,16 +5,16 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2841807544",
+    "hash" : "2891328379",
     "id" : "B50B86D4",
-    "lastKnownWriteTime" : 1573946701,
-    "last_content_update" : 1573946701844,
+    "lastKnownWriteTime" : 1573948802,
+    "last_content_update" : 1573948802794,
     "path" : "~/GitHub/BAYES_SAT/SAT_Template.Rmd",
     "project_path" : "SAT_Template.Rmd",
     "properties" : {
         "chunk_output_type" : "console",
-        "cursorPosition" : "11,13",
-        "scrollLine" : "2"
+        "cursorPosition" : "90,72",
+        "scrollLine" : "85"
     },
     "read_only" : false,
     "read_only_alternatives" : [

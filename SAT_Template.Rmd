@@ -4,12 +4,11 @@ output:
   html_document:
     df_print: paged
 editor_options:
-  
   chunk_output_type: console
+  
 ---
 
 ```{r setup, include=FALSE}
-# Hi Cathy!!!
 knitr::opts_chunk$set(echo = T, warning = F, message = F)
 library("tidyverse")
 library("rstan") # observe startup messages
@@ -88,7 +87,7 @@ This model doesn't use shrinkage. The model prior has a linear combination of
 sat_data <- mutate(sat_data, spend_pct = Spend*PrcntTake) #interaction variable created
 
 #normalize the newly created variable:
-sat_data <- mutate(sat_data, z_spend_pct =as.numeric(scale(spend_pct)) )
+sat_data <- mutate(sat_data, z_spend_pct = as.numeric(scale(Spend*PrcntTake))) 
 
 # Input for Stan
 sat.data <- list(J=3, N=nrow(sat_data),
@@ -109,7 +108,7 @@ launch_shinystan(as.shinystan(fit.m1))
 
 Do a prior preditive check for Model 1 that seems reasonable and explain WHY you chose it and what your visual describes.  Just do a single plot, but make sure it's clear to me that you fully understand what it is saying.
 
-We choose a bar chart to display the generated fake data with its mean highlighted which is about 980. The range of scores is reasonable with a wide range of data. but we don't have 1600? 
+We choose a bar chart to display the generated fake data with its mean highlighted which is about 980. The range of scores is reasonable with a wide range of value as the mean of SAT scores.
 
 ```{r}
 sat.pri.data <- list(J=3, N=nrow(sat_data),
@@ -140,14 +139,14 @@ ppc_stat(sat_data$SATT, fake.data.stan)
 # samples <- as.data.frame(fit.prior.m1)%>%
 #   sample_n(size = 30)%>%
 #   select(contains("y_fake"))
-# ppc_dens_overlay(y=as.numeric(sat_data$SATT), yrep = as.matrix(samples))
+#ppc_dens_overlay(y=as.numeric(sat_data$SATT), yrep = as.matrix(samples))
 ```
 
 
 ## Model 2
 
 This model is with shrinkage. The model prior has a linear combination of 
-$z_{y_{i}\sim student-t(z_\nu, z_{\beta_{0}{+z_{\beta_{1}}*Spend_{i}+z_{\beta_{2}}*PrcntTake_{i}+z_{\beta_{3}}*Spend_{i}*PrcntTake_{i}, z_\sigma)$, where $i = 1,2,3,...,50$ indicating each subject; $z_\nu \sim e^{(1/30)}$, $z_\sigma \sim Normal(0,1)$, $z_{\beta_{0,1,2,3}}\sim student-t(10, \mu, \sigma)$ where $\mu\sim Normal(0,1)$, $\sigma\sim Normal(0,1)$. We choose 10 for $nu$ for $z_\beta$'s because we want theem to have some thickness to the tails but not too thick. We choose normal distributions for both $z_\beta$'s $\mu$ and $\sigma$ because although $z_\beta$'s are standardized, for practice purpose we still give them a hyper distribution.
+$z_{y_{i}\sim student-t(z_\nu, z_{\beta_{0}{+z_{\beta_{1}}*z_{Spend_{i}}+z_{\beta_{2}}*z_{PrcntTake_{i}}+z_{\beta_{3}}*z_{Spend_{i}*PrcntTake_{i}}, z_\sigma)$, where $i = 1,2,3,...,50$ indicating each subject; $z_\nu \sim e^{(1/30)}$, $z_\sigma \sim Normal(0,1)$, $z_{\beta_{0,1,2,3}}\sim student-t(10, \mu, \sigma)$ where $\mu\sim Normal(0,1)$, $\sigma\sim Normal(0,1)$. We choose 10 for $nu$ for $z_\beta$'s because we want theem to have some thickness to the tails but not too thick. We choose standard normal distributions for $z_\beta$'s $\mu$ and Half-Normal for $\sigma$ because although $z_\beta$'s are standardized, for practice purpose we still give them a hyper distribution.
 
 ```{r}
 # Input for Stan
@@ -168,7 +167,7 @@ sat.data <- list(J=3, hypers = c(0,0.5,1,0.5),
                  z_ptake = sat_data$z_ptake,
                  z_int = sat_data$z_spend_pct,
                  z_sat = sat_data$z_sat)
-fit.m2 <- stan(file = "model2_shrink.stan",data = sat.data,seed = 42, control = list(adapt_delta = 0.999))
+fit.m2 <- stan(file = "model2_shrink.stan",data = sat.data, seed = 42, control = list(adapt_delta = 0.999))
 
 launch_shinystan(as.shinystan(fit.m2))
 

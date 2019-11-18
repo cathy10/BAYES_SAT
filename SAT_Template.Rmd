@@ -38,16 +38,16 @@ sat_data <- mutate(sat_data, z_spend = as.numeric(scale(sat_data$Spend)),
                    z_ptake = as.numeric(scale(sat_data$PrcntTake)), 
                    z_sat = as.numeric(scale(sat_data$SATT)))
 # Input for Stan
-sat.data <- list(J=2,N=nrow(sat_data),
-                 mspend = mean(sat_data$Spend), mptake = mean(sat_data$PrcntTake), msat = mean(sat_data$SATT),
-                 sspend = sd(sat_data$Spend),sptake = sd(sat_data$PrcntTake),ssat = sd(sat_data$SATT),
-                 z_spend = sat_data$z_spend,
-                 z_ptake = sat_data$z_ptake,
-                 z_sat = sat_data$z_sat)
+#sat.data <- list(J=2,N=nrow(sat_data),
+                 # mspend = mean(sat_data$Spend), mptake = mean(sat_data$PrcntTake), msat = mean(sat_data$SATT),
+                 # sspend = sd(sat_data$Spend),sptake = sd(sat_data$PrcntTake),ssat = sd(sat_data$SATT),
+                 # z_spend = sat_data$z_spend,
+                 # z_ptake = sat_data$z_ptake,
+                 # z_sat = sat_data$z_sat)
 
-fit <- stan(file = "SAT.stan",data = sat.data,seed = 42)
+#fit <- stan(file = "SAT.stan",data = sat.data,seed = 42)
 
-launch_shinystan(as.shinystan(fit))
+#launch_shinystan(as.shinystan(fit))
 
 ```
 
@@ -146,11 +146,11 @@ ppc_stat(sat_data$SATT, fake.data.stan)
 ## Model 2
 
 This model is with shrinkage. The model prior has a linear combination of 
-$z_{y_{i}\sim student-t(z_\nu, z_{\beta_{0}{+z_{\beta_{1}}*z_{Spend_{i}}+z_{\beta_{2}}*z_{PrcntTake_{i}}+z_{\beta_{3}}*z_{Spend_{i}*PrcntTake_{i}}, z_\sigma)$, where $i = 1,2,3,...,50$ indicating each subject; $z_\nu \sim e^{(1/30)}$, $z_\sigma \sim Normal(0,1)$, $z_{\beta_{0,1,2,3}}\sim student-t(10, \mu, \sigma)$ where $\mu\sim Normal(0,1)$, $\sigma\sim Normal(0,1)$. We choose 10 for $nu$ for $z_\beta$'s because we want theem to have some thickness to the tails but not too thick. We choose standard normal distributions for $z_\beta$'s $\mu$ and Half-Normal for $\sigma$ because although $z_\beta$'s are standardized, for practice purpose we still give them a hyper distribution.
+$z_{y_{i}\sim student-t(z_\nu, z_{\beta_{0}{+z_{\beta_{1}}*z_{Spend_{i}}+z_{\beta_{2}}*z_{PrcntTake_{i}}+z_{\beta_{3}}*z_{Spend_{i}*PrcntTake_{i}}, z_\sigma)$, where $i = 1,2,3,...,50$ indicating each subject; $z_\nu \sim e^{(1/30)}$, $z_\sigma \sim Normal(0,1)$, $z_{\beta_{0,1,2,3}}\sim student-t(1, \mu, \sigma)$ where $\mu\sim Normal(0,1)$, $\sigma\sim Gamma(2,2)$. We choose 1 for $nu$ for $z_\beta$'s because we want them to add thickness to the tails to account for outliers. We gave the standarad deviation of hyper params a distribution of $\gamma(2,2)$. 
 
 ```{r}
 # Input for Stan
-sat.data <- list(J=3, hypers = c(0,0.5,1,0.5),
+sat.data <- list(J=3, hypers = c(2,2),
                  N=nrow(sat_data),
                  spend = sat_data$Spend, 
                  ptake = sat_data$PrcntTake,
@@ -175,14 +175,23 @@ launch_shinystan(as.shinystan(fit.m2))
 
 ### Hierarchical Modeling
 Fit both models using the standardized data and then transform back to parameters on the original scale. 
-
+We used ghe same hyper for sigma of the betas because we assume that the $\beta_{1,2,3}$ are from the same distribution except $\beta_0$. We gave the sigma hyper parameter a $\sigma\sim\gamma(2,2)$. 
 
 ### Model Diagnostics
 Just write a sentence or two describing what you noticed in Shinystan when you ran the models. Remember to increase the number of digits in Stan's output.
 
+The $\hat{R}$'s have values of 1 and the trace plots look well-mixed. This shows the chains have converged to the same values.
 
 ### Posterior Predictive Checks
 Use the same check you used for the prior predictive check and comment.
+```{r}
+set.seed(2)
+fake.data.post.stan <- as.matrix(as.data.frame(fit.m2) %>% select(contains("y_fake")) %>% sample_n(size = 100))
+
+
+#prior predictive check for the fake data vs. real data
+ppc_stat(sat_data$SATT, fake.data.post.stan)
+```
 
 
 ### Conclusions

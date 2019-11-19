@@ -181,7 +181,7 @@ The $\hat{R}$'s have values well below 1.1, and the trace plots look well-mixed.
 
 ### Posterior Predictive Checks
 
-These posterior predictive checks show that the fake data drawn from the posterior distribution resemble and include the observed data. A histogram of simulated standard deviations compared with the standard deviation of the observed data is included to show how another property of the sampled data compares with the observation.
+These posterior predictive checks show that the fake data drawn from the posterior distribution resemble and include the observed data. The histogram of means shows that our posterior distribution is able to generate data with the same mean as the data we observed. This second plot shows that the posterior distribution produces data that resembles the observation.  
 
 ```{r}
 # Posterior Predictive Checks
@@ -193,9 +193,9 @@ fake.data2.post.stan <- as.matrix(as.data.frame(fit.m2) %>% select(contains("y_f
 # Posterior predictive check for the fake data vs. real data  (Model 2)
 
 grid.arrange(grobs = list(
-ppc_stat(sat_data$SATT, fake.data2.post.stan)+xlab("Mean")+ggtitle("Model 2 Posterior Predictive Check"),
+ppc_stat(sat_data$SATT, fake.data2.post.stan)+xlab("Mean score")+ggtitle("Model 2 Posterior Predictive Check"),
 # ppc_stat(sat_data$SATT,stat = "max",fake.data.post.stan)+xlab("Max")+legend_none(),
-ppc_stat(sat_data$SATT,stat = "sd",fake.data2.post.stan)+xlab("Standard Deviation")
+ppc_dens_overlay(sat_data$SATT,fake.data2.post.stan)+xlab("SATT score")
 # ,ppc_stat(sat_data$SATT,stat = "max",fake.data.post.stan)+legend_none()+xlab("Max")
 ))
 ```
@@ -204,6 +204,7 @@ ppc_stat(sat_data$SATT,stat = "sd",fake.data2.post.stan)+xlab("Standard Deviatio
 
 
 ### Conclusions
+
 Answer the following questions, using credible intervals as your evidence.  
 
 1. (Model 1) Is there evidence that the slope parameters are not zero?  
@@ -227,9 +228,4 @@ This analysis shows that a state's percentage of students who take the SAT has a
 3. How is Model 2 different from Model 1?  Can you explain why?  Do you have any questions about your results?
 
 In Model 2, the results still fail to demonstrate sufficient evidence that $\beta_1$ or $\beta_3$ are not zero. However, this model's distribution for $\beta_1$ has shifted to the right, having interval of $(-1.14,21.42)$. In addition, each of these credible intervals has shrunk. This happened because we used a hyperparameter $\sigma_h$ to enable the distribution of each $\beta$ parameter to inform the others. 
-
-
-
-
-
 

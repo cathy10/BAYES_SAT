@@ -1,5 +1,6 @@
 ---
 title: "SAT - HW 10"
+author: "Jonathan Larson, Cathy Shi"
 output:
   html_document:
     df_print: paged
@@ -92,9 +93,9 @@ sat.data <- list(J=3, N=nrow(sat_data),
                  z_ptake = sat_data$z_ptake,
                  z_int = sat_data$z_spend_pct,
                  z_sat = sat_data$z_sat)
-# fit.m1 <- stan(file = "model1_noshrink.stan",data = sat.data,seed = 42,control = list(adapt_delta = 0.95))
+fit.m1 <- stan(file = "model1_noshrink.stan",data = sat.data,seed = 42,control = list(adapt_delta = 0.95))
 # save(fit.m1,file = "Model1.Rdata")
-load("Model1.Rdata")
+# load("Model1.Rdata")
 # launch_shinystan(as.shinystan(fit.m1))
 
 ```
@@ -120,11 +121,11 @@ sat.pri.data <- list(J=3, N=nrow(sat_data),
                  ssat = sd(sat_data$SATT), 
                  sint = sd(sat_data$spend_pct))
 
-# fit.prior.m1 <- stan(file = 'model1_pri_noshrink.stan', data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.95))
+fit.prior.m1 <- stan(file = 'model1_pri_noshrink.stan', data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.95))
 # launch_shinystan(as.shinystan(fit.prior.m1))
 # 
-# save(fit.prior.m1,file = "Prior_fit.Rdata")
-load("prior_fit.rdata")
+save(fit.prior.m1,file = "Prior_fit.Rdata")
+# load("prior_fit.rdata")
 
 set.seed(21)
 fake.data.stan <- as.matrix(as.data.frame(fit.prior.m1) %>% select(contains("y_fake")) %>% sample_n(size = 300))
@@ -161,10 +162,10 @@ sat.data <- list(J=3, hypers = c(2,2),
                  z_ptake = sat_data$z_ptake,
                  z_int = sat_data$z_spend_pct,
                  z_sat = sat_data$z_sat)
-# fit.m2 <- stan(file = "model2_shrink.stan",data = sat.data, seed = 42, control = list(adapt_delta = 0.95))
+fit.m2 <- stan(file = "model2_shrink.stan",data = sat.data, seed = 42, control = list(adapt_delta = 0.95))
 
-# save(fit.m2,file = "Model2.Rdata")
-load("Model2.Rdata")
+save(fit.m2,file = "Model2.Rdata")
+# load("Model2.Rdata")
 # launch_shinystan(as.shinystan(fit.m2))
 
 ```

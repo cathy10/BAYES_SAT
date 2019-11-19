@@ -10,6 +10,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Jonathan Larson, Cathy Shi" />
 
 
 <title>SAT - HW 10</title>
@@ -1633,6 +1634,7 @@ summary {
 
 
 <h1 class="title toc-ignore">SAT - HW 10</h1>
+<h4 class="author">Jonathan Larson, Cathy Shi</h4>
 
 </div>
 
@@ -1697,9 +1699,9 @@ sat.data &lt;- list(J=3, N=nrow(sat_data),
                  z_ptake = sat_data$z_ptake,
                  z_int = sat_data$z_spend_pct,
                  z_sat = sat_data$z_sat)
-# fit.m1 &lt;- stan(file = &quot;model1_noshrink.stan&quot;,data = sat.data,seed = 42,control = list(adapt_delta = 0.95))
+fit.m1 &lt;- stan(file = &quot;model1_noshrink.stan&quot;,data = sat.data,seed = 42,control = list(adapt_delta = 0.95))
 # save(fit.m1,file = &quot;Model1.Rdata&quot;)
-load(&quot;Model1.Rdata&quot;)
+# load(&quot;Model1.Rdata&quot;)
 # launch_shinystan(as.shinystan(fit.m1))</code></pre>
 </div>
 <div id="prior-predictive-checks" class="section level3">
@@ -1720,11 +1722,11 @@ sat.pri.data &lt;- list(J=3, N=nrow(sat_data),
                  ssat = sd(sat_data$SATT), 
                  sint = sd(sat_data$spend_pct))
 
-# fit.prior.m1 &lt;- stan(file = &#39;model1_pri_noshrink.stan&#39;, data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.95))
+fit.prior.m1 &lt;- stan(file = &#39;model1_pri_noshrink.stan&#39;, data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.95))
 # launch_shinystan(as.shinystan(fit.prior.m1))
 # 
-# save(fit.prior.m1,file = &quot;Prior_fit.Rdata&quot;)
-load(&quot;prior_fit.rdata&quot;)
+save(fit.prior.m1,file = &quot;Prior_fit.Rdata&quot;)
+# load(&quot;prior_fit.rdata&quot;)
 
 set.seed(21)
 fake.data.stan &lt;- as.matrix(as.data.frame(fit.prior.m1) %&gt;% select(contains(&quot;y_fake&quot;)) %&gt;% sample_n(size = 300))
@@ -1755,10 +1757,10 @@ sat.data &lt;- list(J=3, hypers = c(2,2),
                  z_ptake = sat_data$z_ptake,
                  z_int = sat_data$z_spend_pct,
                  z_sat = sat_data$z_sat)
-# fit.m2 &lt;- stan(file = &quot;model2_shrink.stan&quot;,data = sat.data, seed = 42, control = list(adapt_delta = 0.95))
+fit.m2 &lt;- stan(file = &quot;model2_shrink.stan&quot;,data = sat.data, seed = 42, control = list(adapt_delta = 0.95))
 
-# save(fit.m2,file = &quot;Model2.Rdata&quot;)
-load(&quot;Model2.Rdata&quot;)
+save(fit.m2,file = &quot;Model2.Rdata&quot;)
+# load(&quot;Model2.Rdata&quot;)
 # launch_shinystan(as.shinystan(fit.m2))</code></pre>
 <div id="hierarchical-modeling" class="section level3">
 <h3>Hierarchical Modeling</h3>

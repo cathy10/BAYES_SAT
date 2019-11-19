@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574123560874.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2253165294",
+    "id" : "E58C4ACB",
+    "lastKnownWriteTime" : 1574124403,
+    "last_content_update" : 1574124403388,
+    "path" : "~/GitHub/BAYES_SAT/model1_pri_noshrink.stan",
+    "project_path" : "model1_pri_noshrink.stan",
+    "properties" : {
+        "cursorPosition" : "30,22",
+        "scrollLine" : "14"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "stan"
+}

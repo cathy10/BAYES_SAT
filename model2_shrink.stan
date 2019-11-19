@@ -13,7 +13,7 @@ data {
   vector[N] z_ptake;
   vector[N] z_int;
   int J;
-  real<lower=0> hypers[4];
+  real<lower=0> hypers[2];
   real<lower=0> spend[N];
   real<lower=0> ptake[N];
   real<lower=0> inter[N]; 
@@ -24,7 +24,6 @@ parameters {
   real z_beta[J];
   real<lower=0> z_sigma;
   real<lower=0> numinusone;
-  real muh[J+1] ;
   real<lower=0> sigmah[J+1];
 }
 transformed parameters{
@@ -33,12 +32,9 @@ transformed parameters{
 }
 model {
   numinusone ~ exponential(1/29.0);
-  muh[J+1] ~ normal(hypers[1], hypers[2]); 
-  sigmah[J+1] ~ normal(hypers[3], hypers[4]); 
-  z_beta0 ~ student_t(10, 0,1);
-  for (i in 1:J) {
-     z_beta[J] ~ student_t(10,0,1);
-  }
+  sigmah ~ gamma(hypers[1], hypers[2]); 
+  z_beta0 ~ student_t(1, 0,1);
+  z_beta[J] ~ student_t(1,0,sigmah);
   z_sigma ~ normal(0,1);
   z_sat ~ student_t(nu, z_beta0 + z_beta[1]*z_spend + z_beta[2]*z_ptake + z_beta[3]*z_int, z_sigma);
   

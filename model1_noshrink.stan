@@ -27,9 +27,9 @@ transformed parameters{
 }
 model {
   numinusone ~ exponential(1/29.0);
-  z_beta0 ~ student_t(10,0,1);
-  z_beta[J] ~ student_t(10,0,1);
-  z_sigma ~ normal(0,1);
+  z_beta0 ~ student_t(1,0,1);
+  z_beta[J] ~ student_t(1,0,1);
+  z_sigma ~ normal(2,2);
   z_sat ~ student_t(nu, z_beta0 + z_beta[1]*z_spend + z_beta[2]*z_ptake + z_beta[3]*z_int, z_sigma);
   
 }
@@ -43,5 +43,6 @@ generated quantities{
   beta[1] = z_beta[1]*ssat/sspend;
   beta[2] = z_beta[2]*ssat/sptake;
   beta[3] = z_beta[3]*ssat/sint;
+  
 }
 

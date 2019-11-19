@@ -1,0 +1,234 @@
+---
+title: "SAT - HW 10"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+library("tidyverse")
+library("rstan") # observe startup messages
+library("shinystan")
+library("bayesplot")
+library("matrixStats")
+library("gridExtra")
+library("mosaic")
+options(mc.cores = parallel::detectCores()) #want to run the chains in parallel
+rstan_options(auto_write = TRUE) #write a complied version to the disk 
+```
+
+```{r}
+# Read in and edit the data
+
+sat_data <- read_csv('Guber1999data.csv')
+# Normalize in R, transform back in Stan
+sat_data <- mutate(sat_data, z_spend = as.numeric(scale(sat_data$Spend)), 
+                   z_ptake = as.numeric(scale(sat_data$PrcntTake)), 
+                   z_sat = as.numeric(scale(sat_data$SATT)))
+
+# Create and normalize interaction variable
+sat_data <- mutate(sat_data, spend_pct = Spend*PrcntTake) 
+sat_data <- mutate(sat_data, z_spend_pct = as.numeric(scale(Spend*PrcntTake))) 
+```
+
+
+
+### General Instructions
+- DO echo your R code in your output.
+- Upload in your .Rmd, .stan, and .html files to Schoology.  Do not zip.
+- Load libraries and data in this section.  
+- Put the code and text in their respective sections.
+
+
+### EDA
+Include three scatterplots of SATT by Spend, SATT by PercntTake, and Spend by PercntTake, and comment on what you see. Calculate the correlation of Spend and PercntTake and comment on its value.
+
+These plots show negative relationships between spending and SATT scores, and between the percentage of students who take the SAT and the average SAT score. The scatterplot of average SATT score versus percent of students who took the SAT shows a very clear negative linear relationship between percent and average score. The plot of percent taking the SAT versus spending shows a positive relationship between these two variables, which is confirmed by the correlation coefficient of $0.593$. This is a stronger correlation than between spending and SATT scores ($-0.381$).
+
+```{r}
+ggplot(data=sat_data)+
+  geom_point(mapping = aes(x=Spend,y=SATT)) + xlab("Spending")
+# ggplot(data=sat_data)+
+#   geom_point(mapping = aes(x=StuTeaRat,y=SATT))
+
+ggplot(data=sat_data)+
+  geom_point(mapping = aes(x=PrcntTake,y=SATT))+xlab("Percent of Students who took SAT")
+
+# ggplot(data=sat_data)+
+#   geom_point(mapping = aes(x=Salary,y=SATT))
+
+ggplot(data=sat_data)+
+  geom_point(mapping = aes(x=Spend,y=PrcntTake))+ylab("Percent of Students who took SAT")+xlab("Spending")
+
+corr_PctTake_Spend=cor(sat_data$Spend,sat_data$PrcntTake)
+corr_SATT_Spend = cor(sat_data$Spend,sat_data$SATT)
+corr_SATT_PctTake = cor(sat_data$PrcntTake,sat_data$SATT)
+```
+
+
+### Model Description
+
+I'd like you to implement two models.  Use a generalized $t$ distribution for both the likelihood and the priors on all of the slope parameters (code the interaction).  One model does NOT use shrinkage for the slope parameters (Model 1), and one does (Model 2).  Describe your two models in this section, noting the prior distributions you will use.  If you know how to use Latex, please use it to write your distributions and parameters.  Do not put the SAT bounds in your model, it will be hard to do prior predictive checks.
+
+
+
+### Model 1
+
+This model doesn't use shrinkage. The model prior has a linear combination of 
+ $y_{i}\sim t(\nu, {\beta_{0}}+{\beta_{1}}*Spend_{i}+{\beta_{2}}*PrcntTake_{i}+\beta_{3}*Spend_{i}*PrcntTake_{i}, \sigma)$, where $i = 1,2,3,...,50$ indicating each state. The data is standardized for use in stan, and uses shape parameter $\nu \sim e^{(1/30)}$ and standardized $\sigma$ $z_\sigma \sim \frac{1}{2}Normal(0,1)$.
+
+```{r}
+
+# Input for Stan
+sat.data <- list(J=3, N=nrow(sat_data),
+                 mint = mean(sat_data$spend_pct),
+                 mspend = mean(sat_data$Spend), mptake = mean(sat_data$PrcntTake), msat = mean(sat_data$SATT),
+                 sspend = sd(sat_data$Spend),sptake = sd(sat_data$PrcntTake),ssat = sd(sat_data$SATT), sint = sd(sat_data$spend_pct),
+                 z_spend = sat_data$z_spend,
+                 z_ptake = sat_data$z_ptake,
+                 z_int = sat_data$z_spend_pct,
+                 z_sat = sat_data$z_sat)
+# fit.m1 <- stan(file = "model1_noshrink.stan",data = sat.data,seed = 42,control = list(adapt_delta = 0.95))
+# save(fit.m1,file = "Model1.Rdata")
+load("Model1.Rdata")
+# launch_shinystan(as.shinystan(fit.m1))
+
+```
+
+### Prior Predictive Checks
+
+Do a prior preditive check for Model 1 that seems reasonable and explain WHY you chose it and what your visual describes.  Just do a single plot, but make sure it's clear to me that you fully understand what it is saying.
+
+We choose a bar chart to display the generated fake data with its mean highlighted which is about 980. The range of scores is reasonable with a wide range of value as the mean of SAT scores. Other descriptors such as standard deviation show that the prior can generate the data, but has too wide a range to effectively show the distribution. Comparing the means of generated data sets shows what data the prior is able to generate, and since the mean of this data is within the range of the generated data, we can see that the prior is able to generate the observed data. The prior predictive check also shows that the prior is able to generate all possible values since the range of means covers the range of possible SAT scores.
+
+```{r}
+# Prior Predictive Checking
+sat.pri.data <- list(J=3, N=nrow(sat_data),
+                     spend = sat_data$Spend, 
+                     ptake = sat_data$PrcntTake,
+                     inter = sat_data$spend_pct,
+                 mint = mean(sat_data$spend_pct),
+                 mspend = mean(sat_data$Spend),
+                 mptake = mean(sat_data$PrcntTake), 
+                 msat = mean(sat_data$SATT),
+                 sspend = sd(sat_data$Spend),
+                 sptake = sd(sat_data$PrcntTake),
+                 ssat = sd(sat_data$SATT), 
+                 sint = sd(sat_data$spend_pct))
+
+# fit.prior.m1 <- stan(file = 'model1_pri_noshrink.stan', data = sat.pri.data, seed = 21,control = list(adapt_delta = 0.95))
+# launch_shinystan(as.shinystan(fit.prior.m1))
+# 
+# save(fit.prior.m1,file = "Prior_fit.Rdata")
+load("prior_fit.rdata")
+
+set.seed(21)
+fake.data.stan <- as.matrix(as.data.frame(fit.prior.m1) %>% select(contains("y_fake")) %>% sample_n(size = 300))
+
+
+#prior predictive check for the fake data vs. real data
+ppc_stat(sat_data$SATT, fake.data.stan)+ggtitle("Model 1 Prior Predictive Check")
+
+```
+
+
+## Model 2
+
+This model is with shrinkage. The model prior has a linear combination of 
+$y_{i}\sim t(\nu,\beta_{0}+ {\beta_{1}} *{Spend_{i}}+ {\beta_{2}}*{PrcntTake_{i}}+{\beta_{3}}*{Spend_{i}*PrcntTake_{i}}, \sigma)$, where $i = 1,2,3,...,50$ indicating each subject. In the standardized form of this  $\nu-1 \sim Exp{(1/29)}$, $z_\sigma \sim Normal(0,1)$, $z_{\beta_{0,1,2,3}}\sim student-t(1, \mu, \sigma)$ 
+where $\mu\sim Normal(0,1)$, $\sigma\sim Gamma(2,2)$. We choose 1 for $nu$ for $z_\beta$'s because we want them to add thickness to the tails to account for outliers. We gave the standarad deviation of hyper parameters a distribution of $\sigma\sim\gamma(2,2)$. 
+
+```{r}
+# Input for Stan, Shrinkage Model
+sat.data <- list(J=3, hypers = c(2,2),
+                 N=nrow(sat_data),
+                 spend = sat_data$Spend, 
+                 ptake = sat_data$PrcntTake,
+                 inter = sat_data$spend_pct,
+                 mint = mean(sat_data$spend_pct),
+                 mspend = mean(sat_data$Spend), 
+                 mptake = mean(sat_data$PrcntTake), 
+                 msat = mean(sat_data$SATT),
+                 sspend = sd(sat_data$Spend),
+                 sptake = sd(sat_data$PrcntTake),
+                 ssat = sd(sat_data$SATT), 
+                 sint = sd(sat_data$spend_pct),
+                 z_spend = sat_data$z_spend,
+                 z_ptake = sat_data$z_ptake,
+                 z_int = sat_data$z_spend_pct,
+                 z_sat = sat_data$z_sat)
+# fit.m2 <- stan(file = "model2_shrink.stan",data = sat.data, seed = 42, control = list(adapt_delta = 0.95))
+
+# save(fit.m2,file = "Model2.Rdata")
+load("Model2.Rdata")
+# launch_shinystan(as.shinystan(fit.m2))
+
+```
+
+### Hierarchical Modeling
+Fit both models using the standardized data and then transform back to parameters on the original scale. 
+We used the same hyperparameter for sigma of the betas because we assume that the $\beta_{1,2,3}$ are from the same distribution except $\beta_0$. This is because $\beta_{1,2,3}$ model the relationship between a variable and SATT scores, while $\beta_0$ is an intercept value for SATT scores. We gave the sigma hyper parameter a distribution $\sigma_h\sim\gamma(2,2)$. 
+
+### Model Diagnostics
+Just write a sentence or two describing what you noticed in Shinystan when you ran the models. Remember to increase the number of digits in Stan's output.
+
+The $\hat{R}$'s have values well below 1.1, and the trace plots look well-mixed. This shows the chains have converged to the same values. Additionally, density plots and histograms show that the distributions for each parameter are unimodal. If this had not been the case, we would need a different model to account for bimodal distributions.
+
+### Posterior Predictive Checks
+
+These posterior predictive checks show that the fake data drawn from the posterior distribution resemble and include the observed data. A histogram of simulated standard deviations compared with the standard deviation of the observed data is included to show how another property of the sampled data compares with the observation.
+
+```{r}
+# Posterior Predictive Checks
+set.seed(2)
+
+fake.data2.post.stan <- as.matrix(as.data.frame(fit.m2) %>% select(contains("y_fake")) %>% sample_n(size = 300))
+
+
+# Posterior predictive check for the fake data vs. real data  (Model 2)
+
+grid.arrange(grobs = list(
+ppc_stat(sat_data$SATT, fake.data2.post.stan)+xlab("Mean")+ggtitle("Model 2 Posterior Predictive Check"),
+# ppc_stat(sat_data$SATT,stat = "max",fake.data.post.stan)+xlab("Max")+legend_none(),
+ppc_stat(sat_data$SATT,stat = "sd",fake.data2.post.stan)+xlab("Standard Deviation")
+# ,ppc_stat(sat_data$SATT,stat = "max",fake.data.post.stan)+legend_none()+xlab("Max")
+))
+```
+
+
+
+
+### Conclusions
+Answer the following questions, using credible intervals as your evidence.  
+
+1. (Model 1) Is there evidence that the slope parameters are not zero?  
+
+The $95\%$ credible intervals for $\beta_{1,2,3}$ are as follows:
+
+- $\beta_1$: $(-12.21,17.94)$
+
+- $\beta_2$: $(-5.53,-2.49)$
+
+- $\beta_3$: $(-0.05, 0.45)$
+
+
+Although the confidence interval for $\beta_2$ shows a negative relationship between percent of students in a state who take the SAT and the state's mean SATT scores, there is not evidence to conclude that a relationship exists between spending and SATT scores. 
+
+
+2. (Model 1) What inference can you make about the effect of Spend and PercntTake on SATT? Interpret this in the context of the interaction.
+
+This analysis shows that a state's percentage of students who take the SAT has a negative impact on the state's mean SATT score. It also shows that spending does not have a significant effect on scores, which our initial analysis could not predict. The connection between spending and the percentage of students who took the SAT created the appearance of a negative correlation between spending and SATT scores when this model shows that no such relationship exists.
+
+3. How is Model 2 different from Model 1?  Can you explain why?  Do you have any questions about your results?
+
+In Model 2, the results still fail to demonstrate sufficient evidence that $\beta_1$ or $\beta_3$ are not zero. However, this model's distribution for $\beta_1$ has shifted to the right, having interval of $(-1.14,21.42)$. In addition, each of these credible intervals has shrunk. This happened because we used a hyperparameter $\sigma_h$ to enable the distribution of each $\beta$ parameter to inform the others. 
+
+
+
+
+
+

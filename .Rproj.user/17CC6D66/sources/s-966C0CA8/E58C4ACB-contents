@@ -28,7 +28,7 @@ model {
   numinusone ~ exponential(1/29.0);
   z_beta0 ~ student_t(1,0,1);
   z_beta[J] ~ student_t(1,0,1);
-  z_sigma ~ Normal(0,1);
+  z_sigma ~ normal(0,1);
 }
 
 generated quantities{
